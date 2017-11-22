@@ -6,7 +6,6 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import json
 import csv
-import matplotlib.pyplot as plt
 from read_archives import get_stops
 
 def generate_correlations(data):

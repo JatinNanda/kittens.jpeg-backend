@@ -104,11 +104,8 @@ def get_article_word_count(article):
 def get_num_keywords(article):
     return len(article["keywords"])
 
-def get_popularity(article):
-    if "favorite_count" in article and "retweet_count" in article:
-        return int(article["favorite_count"] + 2 * article["retweet_count"])
-    else:
-        return 0
+def get_class(article):
+    return int(article["was_tweeted"])
 
 
 """
@@ -153,7 +150,7 @@ def get_instance_vector(article, all_ngrams, all_keywords, all_doc_types, all_se
     type_of_material_vector = get_type_of_material_vector(article, all_types_of_materials) #10
     article_word_count = get_article_word_count(article) #11
     num_keywords = get_num_keywords(article) #12
-    popularity = get_popularity(article) #13
+    was_tweeted = get_class(article) #13
 
     assert len(ngram_vector) == num_ngrams, " number of ngrams " + " actual " + str(len(ngram_vector)) + " expected " + str(num_ngrams)
     assert len(keywords_vector) == len(all_keywords), " number of keywords" + " actual " + str(len(keywords_vector)) + " expected " + str(num_keywords)
@@ -175,16 +172,7 @@ def get_instance_vector(article, all_ngrams, all_keywords, all_doc_types, all_se
     instance.append(article_word_count)
     instance.append(num_keywords)
 
-    return instance, popularity
-
-# def fit_vector(original, desired_length):
-#     temp = []
-#     for i in xrange(desired_length):
-#         if (i < len(original)):
-#             temp.append(original[i])
-#         else:
-#             temp.append(0)
-#     return temp
+    return instance, was_tweeted
 
 """
 all_ngrams, (in separate method above)
@@ -232,17 +220,15 @@ def get_lists(all_articles_dict):
     return all_keywords, all_doc_types, all_section_names, all_news_desks, all_subsection_names, all_types_of_materials
 
 def get_all_instances(all_articles_dict, dataset_path="datasets/", ngram_path="/top-ngrams"):
-    year = all_articles_dict[0]["pub_date"].split("-")[0]#all_articles_dict[0]["created_at"].split(" ")[-1]
-    ngram_csv = year + "-TopNGrams.csv"#year + "-TopNGrams.csv"
+    year = all_articles_dict[0]["pub_date"].split("-")[0]
+    ngram_csv = year + "-TopNGrams.csv"
     if not os.path.exists(dataset_path):
         os.makedirs(dataset_path)
-    # print "all_articles_dict: ", all_articles_dict
 
     all_ngrams = get_top_ngrams(ngram_csv)
     all_keywords, all_doc_types, all_section_names, all_news_desks, all_subsection_names, all_types_of_materials = get_lists(all_articles_dict)
 
     dataset_name = ngram_csv.split("-")[0] + "-dataset.csv"
-    print dataset_name
     instances = []
     labels = []
 
@@ -260,15 +246,6 @@ def get_all_instances(all_articles_dict, dataset_path="datasets/", ngram_path="/
                 is_header = False
             writer.writerow(instance + [label])
 
-    """
-    with open(dataset_name, "w") as output:
-        writer = csv.writer(output, delimiter=',')
-        for article in all_articles_dict:
-            # print "article: ", article
-            instance, label = get_instance_vector(article, all_ngrams, all_keywords, all_doc_types, all_section_names, all_news_desks, all_subsection_names, all_types_of_materials, ngram_csv)
-            # print instance
-            writer.writerow(instance)
-    """
     return instances, labels
 
 if __name__ == '__main__':
