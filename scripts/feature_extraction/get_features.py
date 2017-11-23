@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import os
 import string
+import numpy as np
 
 DAY_MAP = {'Sun':0, 'Mon':1, 'Tue':2, 'Wed':3, 'Thu':4, 'Fri':5, 'Sat':6}
 # call .map on dict to get array of features
@@ -246,6 +247,8 @@ def get_all_instances(all_articles_dict, dataset_path="datasets/", ngram_path="/
                 is_header = False
             writer.writerow(instance + [label])
 
+    instances = np.array(instances)
+    labels = np.array(labels)
     return instances, labels
 
 if __name__ == '__main__':

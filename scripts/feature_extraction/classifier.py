@@ -32,15 +32,13 @@ print "Extracting features from data..."
 get_ngrams_from_article_json(train_dataset)
 instances, labels = get_all_instances(train_dataset)
 
+train_test_same_year(instances, labels, 0.7, -1)
+
 #test_year = "1900"
 #test_raw_archive = "raw-archives/" + test_year + "_8.json"#"raw-archives/1861_8.json"
 #test_data_csv = test_year + "-dataset.csv"
 #test_data_popularity_output = test_year + "_popularity.csv"
 
-# documents = db.joined.find({"created_at" : {"$regex" : year}})
-# feature_input = [item for item in documents]
-
-#regression_to_classification(year, num_classes)
 print "same class accuracy"
 #train_test_same_year(train_data_csv, 0.7, -1)
 

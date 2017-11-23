@@ -8,22 +8,21 @@ import json
 import csv
 from read_archives import get_stops
 
-def generate_correlations(data):
-    labels = [row[-1] for row in data]
-    correlations = [np.correlate(data[str(i)], labels)[0] for i in xrange(len(data[0])-1)]
+def generate_correlations(instances, labels):
+    correlations = [np.correlate(instances[:,i], labels)[0] for i in xrange(len(instances))]
     sorted_correlations = [i[0] for i in sorted(enumerate(correlations), reverse=True, key=lambda x:x[1])]
     return sorted_correlations
 
-def generate_train_test(data, split, selected_indices):
+def generate_train_test(instances, labels, split, selected_indices):
     training_features = []
     training_labels = []
     testing_features = []
     testing_labels = []
     TRAIN_TEST_SPLIT = split #0.7
 
-    for i, row in enumerate(data):
+    for i, row in enumerate(np.array(instances)):
         selected_features = [row[j] for j in selected_indices]
-        label = row[-1]
+        label = labels[i]
         # print label
         if random.uniform(0, 1) < TRAIN_TEST_SPLIT:
             training_features.append(selected_features)
@@ -34,12 +33,11 @@ def generate_train_test(data, split, selected_indices):
 
     return training_features, training_labels, testing_features, testing_labels
 
-def train_test_same_year(dataset_csv, split, num_top_corr):
-    data = np.genfromtxt(dataset_csv, delimiter=',', names=True)
+def train_test_same_year(instances, labels, split, num_top_corr):
 
-    sorted_correlations = generate_correlations(data)
+    sorted_correlations = generate_correlations(instances, labels)
     selected_indices = sorted_correlations[:num_top_corr]#[:50]#[:4]
-    training_features, training_labels, testing_features, testing_labels = generate_train_test(data, split, selected_indices)
+    training_features, training_labels, testing_features, testing_labels = generate_train_test(instances, labels, split, selected_indices)
 
     clf = RandomForestClassifier(n_estimators=10, max_depth=100)
     clf.fit(training_features, training_labels)
@@ -100,51 +98,3 @@ def train_modern_test_historical(train_data_csv, test_data_csv, test_articles, n
             else:
                 writer.writerow([main_headline, classification - 1])
     print "SAVED OUTPUT TO: ", output_name_csv
-
-
-
-
-
-# # testing_features = np.genfromtxt('1861-dataset.csv', delimiter=',', names=True)
-# # testing_features = np.genfromtxt('2015-dataset.csv', delimiter=',', names=True)
-# # for i, row in enumerate(testing_features):
-# #     predicted = clf.predict(np.array([np.array(list(row)[:-1])]))
-# #     if predicted[0] == 4:
-# #         print i
-#
-#
-# data = np.genfromtxt('magic_dataset_2016.csv', delimiter=',', names=True)
-#
-# # correlations = [np.correlate(data[str(i)], data['196'])[0] for i in xrange(197)]
-# #
-# # sorted_correlations = [i[0] for i in sorted(enumerate(correlations), reverse=True, key=lambda x:x[1])]
-#
-# # training_features = []
-# # training_labels = []
-# testing_features = []
-# testing_labels = []
-# # TRAIN_TEST_SPLIT = 0#1 #0.7
-#
-# selected_indices = sorted_correlations[:50]#[:4]
-#
-# for i, row in enumerate(data):
-#     selected_features = [row[j] for j in selected_indices]
-#     label = row[-1]
-#     # if random.uniform(0, 1) < TRAIN_TEST_SPLIT:
-#     #     training_features.append(selected_features)
-#     #     training_labels.append(label)
-#     # else:
-#     testing_features.append(selected_features)
-#     testing_labels.append(label)
-
-
-
-# sys.exit(0)
-# predicted = clf.predict(testing_features)
-#
-# # plt.plot(clf.feature_importances_)
-# # plt.show()
-# # print training_features
-# print clf.score(testing_features, testing_labels)
-# plt.scatter(testing_labels, predicted)
-# plt.show()
