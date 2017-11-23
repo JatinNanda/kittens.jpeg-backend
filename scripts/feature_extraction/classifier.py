@@ -12,6 +12,13 @@ from util import train_test_same_year
 from util import train_test_two_years
 from util import train_modern_test_historical
 
+'''
+THERE'S 3 WAYS TO RUN THE CLASSIFIER:
+1) python classifier.py (year)   # This will train/test on the same year
+2) python classifier.py (train_year) (test_year)   # This will train/test on different years
+3) python classifier.py historic (test_year)   # This will train on the 'years_in_db' array and test on the historic year, outputting a csv
+'''
+
 rest_endpoint = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset'
 rest_endpoint_historical = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_historic_articles'
 
@@ -40,9 +47,9 @@ def classify_historic_data(output_year):
     for year in years_in_db:
         all_train_data.append(grab_instances_for_year(year))
 
-    articles = grab_articles_from_history(output_year)
+    test_instances, articles = grab_articles_from_history(output_year)
 
-    train_modern_test_historical(all_train_data, articles, 0.0, output_year + '-headlines')
+    train_modern_test_historical(all_train_data, test_instances, articles, -1, output_year + '-headlines')
 
 
 
@@ -64,16 +71,17 @@ def grab_instances_for_year(year):
 
 # used for getting historic articles for testing the classifier
 def grab_articles_from_history(year):
+    print "*** TESTING ON HISTORY ***"
     print "Getting data from db for " +  year + "..."
     dataset_params = {'year' : year, 'num_articles' : dataset_size}
-    dataset = requests.get(rest_endpoint, params = dataset_params).json()
+    dataset = requests.get(rest_endpoint_historical, params = dataset_params).json()
 
-    articles = dataset[0]['articles']
+    articles = dataset['articles']
 
     print "Extracting features from data..."
     get_ngrams_from_article_json(articles)
     instances, _ = get_all_instances(articles)
-    return instances
+    return instances, articles
 
 if __name__ == '__main__':
     train_year = None
@@ -87,7 +95,7 @@ if __name__ == '__main__':
         train_year = sys.argv[1]
         test_year = sys.argv[2]
         # signal to do historic classification on next param year
-        if train_year is 'historic':
+        if train_year == 'historic':
             classify_historic_data(test_year)
         else:
             classify_different_years(train_year, test_year)

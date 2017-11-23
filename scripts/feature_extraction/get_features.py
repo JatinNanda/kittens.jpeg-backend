@@ -18,7 +18,9 @@ def get_print_page(article):
     try:
         return int(print_page)
     except:
-        print "print_page error: ", print_page
+        #print "print_page error: ", print_page
+        return int(print_page.lower().strip(string.ascii_lowercase))
+
 
 def get_num_multimedia(article):
     multimedia = article["multimedia"]

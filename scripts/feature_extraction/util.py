@@ -72,10 +72,10 @@ def train_test_two_years(dataset_train, dataset_test, num_top_corr):
     print "ACCURACY: ", clf.score(testing_features, testing_labels)
 
 # trains and returns a model using (instances,labels) tuples throughout several years
-def train_all_modern(all_train_datasets):
+def train_all_modern(all_train_datasets, num_top_corr):
     # aggregate training data and labels
-    all_training_features = [train_set[0] for train_set in sum(all_train_datasets, [])]
-    all_training_labels = [train_set[1] for train_set in sum(all_train_datasets, [])]
+    all_training_features = np.array(sum([list(train_set[0]) for train_set in all_train_datasets], []))
+    all_training_labels = np.array(sum([list(train_set[1]) for train_set in all_train_datasets], []))
 
     sorted_correlations = generate_correlations(all_training_features, all_training_labels)
     selected_indices = sorted_correlations[:num_top_corr]
@@ -86,24 +86,27 @@ def train_all_modern(all_train_datasets):
     return clf, selected_indices
 
 # the fruit of our labor - this method trains the final classifier and deals with historic testing data
-def train_modern_test_historical(all_train_datasets, test_articles, num_top_corr, output_name_csv):
+def train_modern_test_historical(all_train_datasets, test_instances, test_articles, num_top_corr, output_name_csv):
 
-    trained_classifier, selected_indices = train_all_modern(all_train_datasets)
+    trained_classifier, selected_indices = train_all_modern(all_train_datasets, num_top_corr)
 
-    testing_features, _, _, _ = generate_train_test(test_articles, None, 1, selected_indices)
+    testing_features, _, _, _ = generate_train_test(test_instances, None, 1, selected_indices)
 
-    stop_phrases = get_stops(test_articles[0]['pub_date'].split['-'][0])
+    stop_phrases = get_stops(test_articles[0]['pub_date'].split('-')[0])
 
-    with open(output_name_csv, "w") as indices:
+    predicted = trained_classifier.predict(testing_features)
+
+    with open("outputs/" + output_name_csv, "w") as indices:
         writer = csv.writer(indices)
-        writer.writerow(["main_headline", "classification"])
-        for i, row in enumerate(testing_features):
-            selected_features = [row[j] for j in selected_indices]
-            predicted = clf.predict(np.array([np.array(list(selected_features))]))
-            classification = predicted[0]
+        writer.writerow(["pub_date", "main_headline", "article_url", "classification"])
+        for i in xrange(len(testing_features)):
+            classification = predicted[i]
             main_headline = test_articles[i]["headline"]["main"].encode('utf-8')
+            pub_date = test_articles[i]["pub_date"]
+            article_url = test_articles[i]["web_url"]
+            # manually convert classification output for headlines with stop phrases just in case
             if not any(phrase in main_headline for phrase in stop_phrases):
-                writer.writerow([main_headline, classification])
+                writer.writerow([pub_date, main_headline, article_url, classification])
             else:
-                writer.writerow([main_headline, classification - 1])
-    print "SAVED OUTPUT TO: ", output_name_csv
+                writer.writerow([pub_date, main_headline, article_url, 0])
+    print "SAVED OUTPUT TO: ", "outputs/" + output_name_csv
