@@ -10,16 +10,15 @@ DAY_MAP = {'Sun':0, 'Mon':1, 'Tue':2, 'Wed':3, 'Thu':4, 'Fri':5, 'Sat':6}
 # call .map on dict to get array of features
 
 def get_print_page(article):
+    if 'print_page' not in article.keys():
+        return 0
     print_page = article["print_page"]
-    # print print_page
     if (print_page is None or print_page == ''):
         return 0
     try:
         return int(print_page)
     except:
         print "print_page error: ", print_page
-    finally:
-        return int(print_page.lower().strip(string.ascii_lowercase))
 
 def get_num_multimedia(article):
     multimedia = article["multimedia"]
@@ -59,17 +58,12 @@ def get_keywords_vector(article, all_keywords):
     return vector
 
 def get_pub_date(article):
-    # print article["pub_date"]
     pub_date = article["pub_date"].split("T")[0]
     # example: "2015-09-18T07:57:43Z"
     # "Wed Jan 18 08:31:04 +0000 2017"
-    # print pub_date
     datetime_object = datetime.strptime(pub_date, '%Y-%m-%d')
-    # print datetime_object.weekday()
-    # print repr(pub_date)
 
-    # print DAY_MAP[pub_date]#datetime_object.strftime('%d')
-    return datetime_object.weekday()#DAY_MAP[pub_date]#datetime_object.weekday()
+    return datetime_object.weekday()
 
 def get_document_type_vector(article, all_doc_types):
     article_doc_type = article["document_type"]
@@ -77,18 +71,31 @@ def get_document_type_vector(article, all_doc_types):
     return vector
 
 def get_section_name_vector(article, all_section_names):
-    article_section = article["section_name"]
-    vector = [1 if section == article_section else 0 for section in all_section_names]
+    if 'section_name' not in article.keys():
+        vector = [0] * len(all_section_names)
+    else:
+        article_section = article["section_name"]
+        vector = [1 if section == article_section else 0 for section in all_section_names]
     return vector
 
 def get_news_desk_vector(article, all_news_desks):
-    article_desk = article["news_desk"]
-    vector = [1 if desk == article_desk else 0 for desk in all_news_desks]
+    if 'news_desk' in article.keys():
+        article_desk = article["news_desk"]
+        vector = [1 if desk == article_desk else 0 for desk in all_news_desks]
+    elif 'new_deks' in article.keys():
+        # don't know where this is coming from, but it's a thing
+        article_desk = article["new_desk"]
+        vector = [1 if desk == article_desk else 0 for desk in all_news_desks]
+    else:
+        vector = [0] * len(all_news_desks)
     return vector
 
 def get_subsection_name_vector(article, all_subsection_names):
-    article_subsection = article["subsection_name"]
-    vector = [1 if subsection == article_subsection else 0 for subsection in all_subsection_names]
+    if 'subsection_name' not in article.keys():
+        vector = [0] * len(all_subsection_names)
+    else:
+        article_subsection = article["subsection_name"]
+        vector = [1 if subsection == article_subsection else 0 for subsection in all_subsection_names]
     return vector
 
 def get_type_of_material_vector(article, all_types_of_materials):
@@ -106,7 +113,10 @@ def get_num_keywords(article):
     return len(article["keywords"])
 
 def get_class(article):
-    return int(article["was_tweeted"])
+    if 'was_tweeted' in article.keys():
+        return int(article["was_tweeted"])
+    else:
+        return None
 
 
 """
@@ -185,38 +195,18 @@ all_subsection_names,
 all_types_of_materials
 """
 def get_lists(all_articles_dict):
-    # print all_articles_dict
-    # all_doc_types = set()
-    # all_section_names = set()
-    # all_news_desks = set()
-    # all_subsection_names = set()
-    # all_types_of_materials = set()
-    #
-    # for article in all_articles_dict:
-    #     # all_keywords = all_keywords.union(set([word["name"] for word in article["keywords"]]))
-    #     all_doc_types.add(article["document_type"])
-    #     all_section_names.add(article["section_name"])
-    #     all_news_desks.add(article["news_desk"])
-    #     all_subsection_names.add(article["subsection_name"])
-    #     all_types_of_materials.add(article["type_of_material"])
 
     all_keywords = [u'creative_works', u'glocations', u'organizations', u'persons', u'subject']
-    # all_keywords = fit_vector(all_keywords, 5)
 
     all_doc_types = [u'article', u'blogpost', u'multimedia']
-    # all_doc_types = fit_vector(all_doc_types, 3)
 
     all_section_names = [u'Arts', u'false', u'Sunday Review', u'The Upshot', u'Travel', u'Multimedia', u'Style', u'Sports', u'Health', u'Food', u'Crosswords & Games', u'Automobiles', u'World', u'NYT Now', u'Theater', u'Science', u'U.S.', u'Your Money', u'Movies', u'Magazine', u'Business Day', u'Opinion', u'Fashion & Style', u'Education', u'T Magazine', u'Books', u'Real Estate', u'Multimedia/Photos', u'N.Y. / Region', u'Technology']
-    # all_section_names = fit_vector(all_section_names, 30)
 
     all_news_desks = [None, u'Arts', u'Arts / Art & Design', u'Arts / Television', u'Arts&Leisure', u'BookReview', u'Books', u'Books / Book Review', u'Business', u'Business Day', u'Business Day / International Business', u'Culture', u'Dining', u'EdLife', u'Editorial', u'Fashion & Style', u'Food', u'Foreign', u'Magazine', u'Metro', u'Metropolitan', u'Movies', u'Multimedia/Photos', u'N.Y. / Region', u'NYTNow', u'National', u'Obits', u'OpEd', u'Opinion', u'Opinion / Sunday Review', u'Politics', u'RealEstate', u'Science', u'Science / Space & Cosmos', u'Society', u'Sports', u'Sports / Skiing', u'Styles', u'Sunday Review', u'SundayBusiness', u'TStyle', u'The Upshot', u'Travel', u'U.S.', u'U.S. / Politics', u'Upshot', u'Weekend', u'World', u'World / Africa', u'World / Americas', u'World / Asia Pacific', u'World / Middle East']
-    # all_news_desks = fit_vector(all_news_desks, 52)
 
     all_subsection_names = [None, u'Africa', u'Americas', u'Art & Design', u'Asia Pacific', u'Baseball', u'Book Review', u'College Basketball', u'College Football', u'Dance', u'DealBook', u'Dealbook', u'Economy', u'Education Life', u'Environment', u'Europe', u'International Arts', u'International Business', u'Media', u'Middle East', u'Music', u'Personal Tech', u'Politics', u'Pro Basketball', u'Pro Football', u'Skiing', u'Soccer', u'Space & Cosmos', u'Sunday Book Review', u'Sunday Review', u'Television', u'Tennis', u'Tony Awards', u'Weddings', u'false']
-    # all_subsection_names = fit_vector(all_subsection_names, 35)
 
     all_types_of_materials = [u'An Analysis; News Analysis', u'Blog', u'Editorial', u'Interactive Feature', u'List', u'News', u'Obituary', u'Op-Ed', u'Op-Ed; Correction', u'Question', u'Review', u'Series', u'Special Report', u'Video', u'briefing']
-    # all_types_of_materials = fit_vector(all_types_of_materials, 15)
 
     return all_keywords, all_doc_types, all_section_names, all_news_desks, all_subsection_names, all_types_of_materials
 
@@ -233,7 +223,7 @@ def get_all_instances(all_articles_dict, dataset_path="datasets/", ngram_path="/
     instances = []
     labels = []
 
-    with open(dataset_name, "w") as output:
+    with open(dataset_path + dataset_name, "w") as output:
         writer = csv.writer(output, delimiter=',')
 
         is_header = True
@@ -252,7 +242,6 @@ def get_all_instances(all_articles_dict, dataset_path="datasets/", ngram_path="/
     return instances, labels
 
 if __name__ == '__main__':
-    # archivelist = ["2016_8.json", "2015_8.json", "2014_8.json", "2013_8.json", "2012_8.json", "2011_8.json", "2010_8.json", "2009_8.json", "2008_8.json"] #["archive2017.json"]
     ngram_csv = "2016_8-TopNGrams.csv"
     all_articles_dict = {}
     with open("sample_article.json", "r") as articlesjson:

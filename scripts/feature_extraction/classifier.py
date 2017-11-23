@@ -1,4 +1,5 @@
 import requests
+import sys
 import random
 import json
 import sklearn
@@ -7,45 +8,89 @@ from archive_top_ngrams import get_ngrams_from_article_json
 from sklearn import svm
 from sklearn.metrics import mean_squared_error
 from get_features import get_all_instances
-from return_of_richards_dabbling import train_test_same_year
-from return_of_richards_dabbling import train_test_two_years
-from return_of_richards_dabbling import train_modern_test_historical
-from turn_regression_into_classification import regression_to_classification
+from util import train_test_same_year
+from util import train_test_two_years
+from util import train_modern_test_historical
 
-size_train = 10
-size_test = 1000
-train_year = '2015'
-test_year = '2017'
+rest_endpoint = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset'
+rest_endpoint_historical = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_historic_articles'
 
-# pull data from database
-print "Getting data from db..."
-dataset_params = {'year' : train_year, 'num_yes' : 10, 'num_no' : 20}
-dataset = requests.get('http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset', params = dataset_params).json()
+# specify how large the test/training data will be
+dataset_size = 1000
+percent_yes = 0.25
+percent_no = 0.75
 
-# merge train and test data and randomly sample
-yes_data = dataset[0]['yes']
-no_data = dataset[1]['no']
-train_dataset = yes_data + no_data
-train_dataset = random.sample(train_dataset, size_train)
+years_in_db = ['2017', '2016', '2015']
 
-print "Extracting features from data..."
-get_ngrams_from_article_json(train_dataset)
-instances, labels = get_all_instances(train_dataset)
+def classify_same_year(year):
+    instances, labels = grab_instances_for_year(year)
 
-train_test_same_year(instances, labels, 0.7, -1)
+    print "Classifying..."
+    train_test_same_year(instances, labels, 0.7, -1)
 
-#test_year = "1900"
-#test_raw_archive = "raw-archives/" + test_year + "_8.json"#"raw-archives/1861_8.json"
-#test_data_csv = test_year + "-dataset.csv"
-#test_data_popularity_output = test_year + "_popularity.csv"
+def classify_different_years(train_year, test_year):
+    dataset_train = grab_instances_for_year(train_year)
+    dataset_test = grab_instances_for_year(test_year)
 
-print "same class accuracy"
-#train_test_same_year(train_data_csv, 0.7, -1)
+    print "Classifying..."
+    train_test_two_years(dataset_train, dataset_test, -1)
 
-#with open(test_raw_archive, "r") as infile:
-#    documents = json.load(infile)
-#get_ngrams_from_article_json(documents['response']['docs'])
-#instances, labels = get_all_instances(documents['response']['docs'])
+def classify_historic_data(output_year):
+    all_train_data = []
+    for year in years_in_db:
+        all_train_data.append(grab_instances_for_year(year))
 
-#train_modern_test_historical(train_data_csv, test_data_csv, documents['response']['docs'], -1, test_data_popularity_output)
+    articles = grab_articles_from_history(output_year)
+
+    train_modern_test_historical(all_train_data, articles, 0.0, output_year + '-headlines')
+
+
+
+# Highest level method to query database and generate dataset for a year (used for fetching data post twitter creation)
+def grab_instances_for_year(year):
+    print "Getting data from db for " +  year + "..."
+    dataset_params = {'year' : year, 'num_yes' : int(dataset_size * percent_yes), 'num_no' : int(dataset_size * percent_no)}
+    dataset = requests.get(rest_endpoint, params = dataset_params).json()
+
+    yes_data = dataset[0]['yes']
+    no_data = dataset[1]['no']
+    train_dataset = yes_data + no_data
+    random.shuffle(train_dataset)
+
+    print "Extracting features from data..."
+    get_ngrams_from_article_json(train_dataset)
+    instances, labels = get_all_instances(train_dataset)
+    return instances, labels
+
+# used for getting historic articles for testing the classifier
+def grab_articles_from_history(year):
+    print "Getting data from db for " +  year + "..."
+    dataset_params = {'year' : year, 'num_articles' : dataset_size}
+    dataset = requests.get(rest_endpoint, params = dataset_params).json()
+
+    articles = dataset[0]['articles']
+
+    print "Extracting features from data..."
+    get_ngrams_from_article_json(articles)
+    instances, _ = get_all_instances(articles)
+    return instances
+
+if __name__ == '__main__':
+    train_year = None
+    test_year = None
+    if len(sys.argv) == 1:
+        print "Please supply a train year and/or test year!"
+    elif len(sys.argv) == 2:
+        train_year = sys.argv[1]
+        classify_same_year(train_year)
+    elif len(sys.argv) > 2:
+        train_year = sys.argv[1]
+        test_year = sys.argv[2]
+        # signal to do historic classification on next param year
+        if train_year is 'historic':
+            classify_historic_data(test_year)
+        else:
+            classify_different_years(train_year, test_year)
+
+
 
