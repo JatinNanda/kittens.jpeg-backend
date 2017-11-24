@@ -79,11 +79,11 @@ def join_articles_with_converted_tweets(pub_year, num_articles):
 
 if __name__ == "__main__":
     # perform URL conversions and joins on the given years, with num_tweets converted per year and num_articles joined
-    join_years = ['2016', '2015']
+    join_years = ['2017']
     num_tweets = 5000
     num_articles = 100000
 
     for year in join_years:
-        convert_urls_in_tweets(year, num_tweets)
-        #join_articles_with_converted_tweets(year, num_articles)
+        #convert_urls_in_tweets(year, num_tweets)
+        join_articles_with_converted_tweets(year, num_articles)
 

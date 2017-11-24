@@ -49,7 +49,7 @@ def classify_historic_data(output_year):
 
     test_instances, articles = grab_articles_from_history(output_year)
 
-    train_modern_test_historical(all_train_data, test_instances, articles, -1, output_year + '-headlines')
+    train_modern_test_historical(all_train_data, test_instances, articles, -1, output_year + '-headlines.csv')
 
 
 

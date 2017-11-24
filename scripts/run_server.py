@@ -43,6 +43,34 @@ def get_last_article():
     result = convert_object(articles.find().sort('pub_date', -1).limit(1))
     return jsonify({'result' : result})
 
+@app.route('/get_historic_articles', methods=['GET'])
+def get_historic_articles():
+    year = request.args.get('year')
+    num_articles = request.args.get('num_articles')
+    if year is None:
+        year = '1980'
+    if num_articles is None:
+        num_articles = 1000
+    articles = mongo.db.nyt
+    data = convert_object(articles.find({'pub_date': {'$regex' : year}}).limit(int(num_articles)))
+    return jsonify({'articles' : data})
+
+@app.route('/get_dataset', methods=['GET'])
+def get_dataset():
+    year = request.args.get('year')
+    num_yes = request.args.get('num_yes')
+    num_no = request.args.get('num_no')
+    if year is None:
+        year = '2017'
+    if num_yes is None:
+        num_yes = 1000
+    if num_no is None:
+        num_no = 2000
+    articles = mongo.db.dataset
+    yes_data = convert_object(articles.find({'pub_date': {'$regex' : year}, 'was_tweeted' : 1}).limit(int(num_yes)))
+    no_data = convert_object(articles.find({'pub_date': {'$regex' : year}, 'was_tweeted' : 0}).limit(int(num_no)))
+    return jsonify({'yes' : yes_data}, {'no' : no_data})
+
 def convert_object(objects):
     result = []
     for obj in objects:
