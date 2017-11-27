@@ -13,10 +13,11 @@ from util import train_test_two_years
 from util import train_modern_test_historical
 
 '''
-THERE'S 3 WAYS TO RUN THE CLASSIFIER:
+THERE'S 4 WAYS TO RUN THE CLASSIFIER:
 1) python classifier.py (year)   # This will train/test on the same year
 2) python classifier.py (train_year) (test_year)   # This will train/test on different years
 3) python classifier.py historic (test_year)   # This will train on the 'years_in_db' array and test on the historic year, outputting a csv
+4) python classifier.py historic all # This will train on the 'years_in_db' array and test on the historic years range 1851-1899, outputting multiple csvs
 '''
 
 rest_endpoint = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset'
@@ -42,14 +43,14 @@ def classify_different_years(train_year, test_year):
     print "Classifying..."
     train_test_two_years(dataset_train, dataset_test, -1)
 
-def classify_historic_data(output_year):
+def classify_historic_data(output_years):
     all_train_data = []
     for year in years_in_db:
         all_train_data.append(grab_instances_for_year(year))
 
-    test_instances, articles = grab_articles_from_history(output_year)
-
-    train_modern_test_historical(all_train_data, test_instances, articles, -1, output_year + '-headlines.csv')
+    for year in output_years:
+        test_instances, articles = grab_articles_from_history(str(year))
+        train_modern_test_historical(all_train_data, test_instances, articles, -1, str(year) + '-headlines.csv')
 
 
 
@@ -96,7 +97,10 @@ if __name__ == '__main__':
         test_year = sys.argv[2]
         # signal to do historic classification on next param year
         if train_year == 'historic':
-            classify_historic_data(test_year)
+            if test_year == 'all':
+                classify_historic_data(range(1851, 1899))
+            else:
+                classify_historic_data([test_year])
         else:
             classify_different_years(train_year, test_year)
 
