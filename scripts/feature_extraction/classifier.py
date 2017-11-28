@@ -50,6 +50,7 @@ def classify_historic_data(output_years):
 
     for year in output_years:
         test_instances, articles = grab_articles_from_history(str(year))
+        print len(test_instances)
         train_modern_test_historical(all_train_data, test_instances, articles, -1, str(year) + '-headlines.csv')
 
 
