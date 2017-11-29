@@ -55,8 +55,20 @@ def get_historic_articles():
     data = convert_object(articles.find({'pub_date': {'$regex' : year}}).limit(int(num_articles)))
     return jsonify({'articles' : data})
 
-@app.route('/get_dataset', methods=['GET'])
-def get_dataset():
+@app.route('/get_dataset_test', methods=['GET'])
+def get_dataset_test():
+    year = request.args.get('year')
+    num_articles = request.args.get('num_articles')
+    if year is None:
+        year = '1980'
+    if num_articles is None:
+        num_articles = 1000
+    articles = mongo.db.dataset
+    data = convert_object(articles.find({'pub_date': {'$regex' : year}}).limit(int(num_articles)))
+    return jsonify({'articles' : data})
+
+@app.route('/get_dataset_train', methods=['GET'])
+def get_dataset_train():
     year = request.args.get('year')
     num_yes = request.args.get('num_yes')
     num_no = request.args.get('num_no')
