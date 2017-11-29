@@ -19,6 +19,8 @@ def get_print_page(article):
         return int(print_page)
     except:
         #print "print_page error: ", print_page
+        if "front" in print_page.lower():
+            return 1
         return int(print_page.lower().strip(string.ascii_lowercase))
 
 
