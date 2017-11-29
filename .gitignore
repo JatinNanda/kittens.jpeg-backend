@@ -3,5 +3,7 @@
 *.json
 *.zip
 *.pyc
+*.csv
+*.txt
 .vimrc
 
