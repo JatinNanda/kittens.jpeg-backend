@@ -20,13 +20,14 @@ THERE'S 4 WAYS TO RUN THE CLASSIFIER:
 4) python classifier.py historic all # This will train on the 'years_in_db' array and test on the historic years range 1851-1899, outputting multiple csvs
 '''
 
-rest_endpoint = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset'
+rest_endpoint_train = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset_train'
+rest_endpoint_test = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_dataset_test'
 rest_endpoint_historical = 'http://ec2-54-167-62-52.compute-1.amazonaws.com/get_historic_articles'
 
 # specify how large the test/training data will be
-dataset_size = 1000
-percent_yes = 0.25
-percent_no = 0.75
+dataset_size = 3000
+percent_yes = 0.50
+percent_no = 0.50
 
 years_in_db = ['2017', '2016', '2015']
 
@@ -38,7 +39,7 @@ def classify_same_year(year):
 
 def classify_different_years(train_year, test_year):
     dataset_train = grab_instances_for_year(train_year)
-    dataset_test = grab_instances_for_year(test_year)
+    dataset_test = grab_articles_for_test(test_year)
 
     print "Classifying..."
     train_test_two_years(dataset_train, dataset_test, -1)
@@ -59,7 +60,7 @@ def classify_historic_data(output_years):
 def grab_instances_for_year(year):
     print "Getting data from db for " +  year + "..."
     dataset_params = {'year' : year, 'num_yes' : int(dataset_size * percent_yes), 'num_no' : int(dataset_size * percent_no)}
-    dataset = requests.get(rest_endpoint, params = dataset_params).json()
+    dataset = requests.get(rest_endpoint_train, params = dataset_params).json()
 
     yes_data = dataset[0]['yes']
     no_data = dataset[1]['no']
@@ -84,6 +85,20 @@ def grab_articles_from_history(year):
     get_ngrams_from_article_json(articles)
     instances, _ = get_all_instances(articles)
     return instances, articles
+
+# used for getting historic articles for testing the classifier
+def grab_articles_for_test(year):
+    print "Getting testing data from db for " +  year + "..."
+    dataset_params = {'year' : year, 'num_articles' : dataset_size}
+    dataset = requests.get(rest_endpoint_test, params = dataset_params).json()
+
+    test_dataset = dataset['articles']
+
+    print "Extracting features from data..."
+    get_ngrams_from_article_json(test_dataset)
+    instances, labels = get_all_instances(test_dataset)
+    return instances, labels
+
 
 if __name__ == '__main__':
     train_year = None
