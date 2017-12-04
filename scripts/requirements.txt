@@ -1,0 +1,14 @@
+Flask==0.12.2
+Flask-PyMongo==0.5.1
+matplotlib==2.1.0
+numpy==1.13.3
+PIL==1.1.6
+pymongo==3.5.1
+python-dateutil==2.1
+requests==1.2.3
+scikit-learn==0.19.1
+scipy==1.0.0
+simplejson==3.6.5
+sklearn==0.0
+urlgrabber==3.10
+urllib3==1.8.2
