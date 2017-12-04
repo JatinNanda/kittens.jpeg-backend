@@ -83,6 +83,17 @@ def get_dataset_train():
     no_data = convert_object(articles.find({'pub_date': {'$regex' : year}, 'was_tweeted' : 0}).limit(int(num_no)))
     return jsonify({'yes' : yes_data}, {'no' : no_data})
 
+@app.route('/get_dataset_counts', methods=['GET'])
+def get_dataset_train_all():
+    articles = mongo.db.dataset
+    years = ['2015', '2016', '2017']
+    ret = {}
+    for year in years:
+        yes_data = articles.find({'pub_date': {'$regex' : year}, 'was_tweeted' : 1}).count()
+        no_data = articles.find({'pub_date': {'$regex' : year}, 'was_tweeted' : 0}).count()
+        ret[year] = {'yes' : yes_data, 'no' : no_data}
+    return jsonify(ret)
+
 def convert_object(objects):
     result = []
     for obj in objects:
