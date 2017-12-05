@@ -27,15 +27,14 @@ def get_headlines(all_articles_dict, year):
 	archive_name = year
 	archive_headline_path = "headlines/" + archive_name + "-Headline.txt"
 	temp_file = "headlines/temp.txt"
-
 	with open(temp_file, "w") as outfile:
 		for article in all_articles_dict:
 			if ("main" in article["headline"]):
 				main_headline = article["headline"]["main"].encode('utf-8').lower()
-			if not any(phrase in main_headline for phrase in stop_phrases):
-				outfile.write(main_headline + "\n")
-			# for phrase in stop_phrases:
-			# 	main_headline = main_headline.replace(phrase, "")
+			# if not any(phrase in main_headline for phrase in stop_phrases):
+			# 	outfile.write(main_headline + "\n")
+			for phrase in stop_phrases:
+				main_headline = main_headline.replace(phrase, "")
 			outfile.write(main_headline + "\n")
 	headlines = []
 	with open(temp_file, "r") as headlinefile:

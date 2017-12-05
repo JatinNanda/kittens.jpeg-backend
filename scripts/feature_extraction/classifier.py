@@ -37,6 +37,7 @@ def classify_same_year(year):
     print "Classifying..."
     train_test_same_year(instances, labels, 0.7, -1)
 
+
 def classify_different_years(train_year, test_year):
     dataset_train = grab_instances_for_year(train_year)
     dataset_test = grab_articles_for_test(test_year)
@@ -119,6 +120,3 @@ if __name__ == '__main__':
                 classify_historic_data([test_year])
         else:
             classify_different_years(train_year, test_year)
-
-
-

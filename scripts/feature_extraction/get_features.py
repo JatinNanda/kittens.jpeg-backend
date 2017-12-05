@@ -46,10 +46,12 @@ def get_top_ngrams(ngram_csv, top_ngram_path="top-ngrams/"):
 def get_ngram_vector(article, all_ngrams, ngram_csv, top_ngram_path="top-ngrams/"):
     vector = []
     if ("main" in article["headline"]):
-        main_headline = article["headline"]["main"]#.encode('utf-8').lower()
+        main_headline = article["headline"]["main"].lower()#.encode('utf-8').lower()
+        # print main_headline
         ngrams_to_consider = get_top_ngrams(ngram_csv)
         for ngram in ngrams_to_consider:
             vector.append(main_headline.count(ngram))
+        # print vector
     return vector
 
 def get_keywords_vector(article, all_keywords):
@@ -222,6 +224,36 @@ def get_all_instances(all_articles_dict, dataset_path="datasets/", ngram_path="/
 
     all_ngrams = get_top_ngrams(ngram_csv)
     all_keywords, all_doc_types, all_section_names, all_news_desks, all_subsection_names, all_types_of_materials = get_lists(all_articles_dict)
+
+    """
+        instance = [print_page, num_multimedia, headline_length]
+        instance.extend(ngram_vector)
+        instance.extend(keywords_vector)
+        instance.append(pub_date)
+        instance.extend(document_type_vector)
+        instance.extend(section_name_vector)
+        instance.extend(news_desk_vector)
+        instance.extend(subsection_name_vector)
+        instance.extend(type_of_material_vector)
+        instance.append(article_word_count)
+        instance.append(num_keywords)
+    """
+
+    # prints out mapping of feature indicies for debugging reference
+    # columns = ["print_page", "num_multimedia", "headline_length"]
+    # columns.extend(all_ngrams)
+    # columns.extend(all_keywords)
+    # columns.append("pub_date")
+    # columns.extend(all_doc_types)
+    # columns.extend(all_section_names)
+    # columns.extend(all_news_desks)
+    # columns.extend(all_subsection_names)
+    # columns.extend(all_types_of_materials)
+    # columns.append("article_word_count")
+    # columns.append("num_keywords")
+    # for c, value in enumerate(columns, 0):
+    #     print c, ": ", value
+
 
     dataset_name = ngram_csv.split("-")[0] + "-dataset.csv"
     instances = []
