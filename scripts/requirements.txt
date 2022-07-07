@@ -5,7 +5,7 @@ numpy==1.13.3
 PIL==1.1.6
 pymongo==3.5.1
 python-dateutil==2.1
-requests==1.2.3
+requests==2.20.0
 scikit-learn==0.19.1
 scipy==1.0.0
 simplejson==3.6.5
